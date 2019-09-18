@@ -3,7 +3,7 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.layers import Merge
-from keras.utils.visualize_util import plot
+#from keras.utils.visualize_util import plot
 from keras.optimizers import Adam
 import theano
 import theano.tensor as T
@@ -33,8 +33,9 @@ final_model.add(Convolution2D(1, 1, 1))
 
 def myloss(pred_val, true_val, count_pos, count_neg):
     loss = T.log(1.0+T.exp(-1.0*true_val*pred_val))
-    cat = (true_val+1)/2
-    return cat*((count_neg*loss)/(count_neg+count_pos)) + (1-cat)*((count_pos*loss)/(count_neg+count_pos))
+    return loss 
+    #cat = (true_val+1)/2
+    #return cat*((count_neg*loss)/(count_neg+count_pos)) + (1-cat)*((count_pos*loss)/(count_neg+count_pos))
 
 def calcLossAtLocation(i, j, prior_loss_matrix, count_pos, count_neg, y_true, y_pred):
     loss_i_j = myloss(y_pred[i,j], y_true[i,j], count_pos, count_neg) 
@@ -53,11 +54,15 @@ def test(y_true, y_pred):
     neg_loss_results, updates = theano.scan(fn = calcLossAtLocation, outputs_info = pos_loss_results[-1], sequences = [neg_indices[0], neg_indices[1]], non_sequences = [count_pos, count_neg, y_true, y_pred])
     return neg_loss_results[-1]
 
+def testLoss(y_true, y_pred):
+    return T.log(1+T.exp(-1.0*y_true*y_pred))
+
 adam_opt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-final_model.compile(loss='mean_squared_error', optimizer=adam_opt)
+#final_model.compile(loss='mean_squared_error', optimizer=adam_opt)
+final_model.compile(loss=testLoss, optimizer=adam_opt)
 print "Model compiled"
 
-plot(final_model, to_file='model.png', show_shapes=True)
+#plot(final_model, to_file='model.png', show_shapes=True)
 score_train = np.random.random((10, 2, w, h))
 IoU_train = np.random.random((10, 121, w, h))
 y_train = np.random.randint(2, size = (10,1, w,h))
